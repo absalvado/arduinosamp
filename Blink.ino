@@ -1,36 +1,76 @@
-56a8a262839a67b7eae36c3c5d47ac58468992e8/*
-  Blink
-  Turns on an LED on for one second, then off for one second, repeatedly.
+#include "IRremote.h"
 
-  Most Arduinos have an on-board LED you can control. On the UNO, MEGA and ZERO 
-  it is attached to digital pin 13, on MKR1000 on pin 6. LED_BUILTIN is set to
-  the correct LED pin independent of which board is used.
-  If you want to know what pin the on-board LED is connected to on your Arduino model, check
-  the Technical Specs of your board  at https://www.arduino.cc/en/Main/Products
-  
-  This example code is in the public domain.
+int receiver = A4; // Signal Pin of IR receiver to Arduino Digital Pin 11
+int ledPin = 2; 
 
-  modified 8 May 2014
-  by Scott Fitzgerald
-  
-  modified 2 Sep 2016
-  by Arturo Guadalupi
-  
-  modified 8 Sep 2016
-  by Colby Newman
-*/
+/*-----( Declare objects )-----*/
+IRrecv irrecv(receiver);     // create instance of 'irrecv'
+decode_results results;      // create instance of 'decode_results'
+
+void setup()   /*----( SETUP: RUNS ONCE )----*/
+{
+  Serial.begin(9600);
+  Serial.println("IR Receiver Button Decode"); 
+  irrecv.enableIRIn(); // Start the receiver
+  pinMode(ledPin, OUTPUT); 
+
+}/*--(end setup )---*/
 
 
-// the setup function runs once when you press reset or power the board
-void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
-}
+void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
+{
 
-// the loop function runs over and over again forever
-void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);                       // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(1000);                       // wait for a second
-}
+
+  if (irrecv.decode(&results)) // have we received an IR signal?
+
+  {
+    translateIR(); 
+    irrecv.resume(); // receive the next value
+  }  
+}/* --(end main loop )-- */
+
+/*-----( Function )-----*/
+void translateIR() // takes action based on IR code received
+
+// describing Remote IR codes 
+
+{
+
+  switch(results.value)
+
+  {
+
+  case 0xFF629D: Serial.println(" FORWARD"); break;
+  case 0xFF22DD: Serial.println(" LEFT");    break;
+  case 0xFF02FD: Serial.println(" -OK-");    break;
+  case 0xFFC23D: Serial.println(" RIGHT");   break;
+  case 0xFFA857: Serial.println(" REVERSE"); break;
+  case 0xFF6897: Serial.println(" 1");   
+  digitalWrite(ledPin, HIGH);
+  break;
+  case 0xFF9867: Serial.println(" 2");   
+  digitalWrite(ledPin, LOW);
+  break;
+  case 0xFFB04F: Serial.println(" 3");    break;
+  case 0xFF30CF: Serial.println(" 4");    break;
+  case 0xFF18E7: Serial.println(" 5");    break;
+  case 0xFF7A85: Serial.println(" 6");    break;
+  case 0xFF10EF: Serial.println(" 7");    break;
+  case 0xFF38C7: Serial.println(" 8");    break;
+  case 0xFF5AA5: Serial.println(" 9");    break;
+  case 0xFF42BD: Serial.println(" *");    break;
+  case 0xFF4AB5: Serial.println(" 0");    break;
+  case 0xFF52AD: Serial.println(" #");    break;
+  case 0xFFFFFFFF: Serial.println(" REPEAT");
+  digitalWrite(ledPin, LOW);
+  break;  
+
+  default: 
+    Serial.println(" other button   ");
+
+  }// End Case
+
+  delay(500); // Do not get immediate repeat
+
+
+} //END translateIR
